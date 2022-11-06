@@ -176,10 +176,12 @@ def predict():
 
     # recover focal length, shift, and scale-invariant depth
     fov = 60
-    shift, focal_length, depth_scaleinv = reconstruct3D_from_depth(rgb, pred_depth_ori,
+    shift, focal_length, depth_scaleinv, fov2 = reconstruct3D_from_depth(rgb, pred_depth_ori,
                                                                     shift_model, focal_model, fov)
     disp = 1 / depth_scaleinv
     disp = (disp / disp.max() * 60000).astype(np.uint16)
+
+    print(f"got fov 2 {fov2}")
 
     # if GT depth is available, uncomment the following part to recover the metric depth
     #pred_depth_metric = recover_metric_depth(pred_depth_ori, gt_depth)
