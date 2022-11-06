@@ -83,7 +83,10 @@ def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov):
     focal_scale_2 = refine_focal(depth_scale_1, predicted_focal_1, focal_model, u0=cam_u0, v0=cam_v0)
     predicted_focal_2 = predicted_focal_1 / focal_scale_2.item()
 
-    return shift_1, predicted_focal_2, depth_scale_1
+    # recover the true fov
+    fov = 2 * np.arctan(rgb.shape[0] / (2 * predicted_focal_2)) * 180 / np.pi
+
+    return shift_1, predicted_focal_2, depth_scale_1, fov
 
 
 
