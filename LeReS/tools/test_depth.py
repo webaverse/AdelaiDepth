@@ -61,6 +61,7 @@ app = flask.Flask(__name__)
 @app.route("/depth", methods=["POST", "OPTIONS"])
 def predict():
     if (flask.request.method == "OPTIONS"):
+        print("got options 1")
         response = flask.Response()
         response.headers["Access-Control-Allow-Origin"] = "*"
         response.headers["Access-Control-Allow-Headers"] = "*"
@@ -68,8 +69,10 @@ def predict():
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
         response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
         response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+        print("got options 2")
         return flask.Response(response="", status=200)
 
+    print(f"got regular request {flask.request.url}")
     # the body as binary bytesio
     body = flask.request.get_data()
     # decode to cv2
