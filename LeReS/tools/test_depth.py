@@ -95,11 +95,15 @@ def predict():
     # respond with the image
     # output = cv2.imencode(".png", pred_depth_ori)[1].tobytes()
     # plt.imsave(os.path.join(image_dir_out, img_name[:-4]+'-depth.png'), pred_depth_ori, cmap='rainbow')
+    
     # save the image, same as above, with rainbow map, except to a bytesio for the response
     bs = io.BytesIO()
     plt.imsave(bs, pred_depth_ori, cmap='rainbow')
+    
+    # encode with cv2 to bytesio
     bs2 = io.BytesIO()
-    cv2.imwrite(bs2, (pred_depth_ori/pred_depth_ori.max() * 60000).astype(np.uint16))
+    cv2.imencode(".png", (pred_depth_ori/pred_depth_ori.max() * 60000).astype(np.uint16), bs2)
+    
     # make a response with the image
     output = bs2.getvalue()
     print(f"got output length: {len(output)}")
