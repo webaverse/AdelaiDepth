@@ -163,7 +163,7 @@ def reconstruct_3D(depth, f):
     pcd = pcd.astype(np.int)
     return pcd
 
-def save_point_cloud(pcd, rgb, binary=True):
+def save_point_cloud(pcd, rgb, filename, binary=True):
     """Save an RGB point cloud as a PLY file.
 
     :paras
@@ -187,13 +187,11 @@ def save_point_cloud(pcd, rgb, binary=True):
             cur_point = points_3d[row_idx]
             vertices.append(tuple(dtype(point) for dtype, point in zip(python_types, cur_point)))
         vertices_array = np.array(vertices, dtype=npy_types)
-        return vertices_array
-        
         el = PlyElement.describe(vertices_array, 'vertex')
+
          # Write
         PlyData([el]).write(filename)
     else:
-        raise NotImplementedError
         x = np.squeeze(points_3d[:, 0])
         y = np.squeeze(points_3d[:, 1])
         z = np.squeeze(points_3d[:, 2])
@@ -214,7 +212,7 @@ def save_point_cloud(pcd, rgb, binary=True):
         # ---- Save ply data to disk
         np.savetxt(filename, np.column_stack((x, y, z, r, g, b)), fmt="%d %d %d %d %d %d", header=ply_head, comments='')
 
-def reconstruct_depth(depth, rgb, pcd_name, focal):
+def reconstruct_depth(depth, rgb, dir, pcd_name, focal):
     """
     para disp: disparity, [h, w]
     para rgb: rgb image, [h, w, 3], in rgb format
@@ -228,7 +226,7 @@ def reconstruct_depth(depth, rgb, pcd_name, focal):
 
     pcd = reconstruct_3D(depth, f=focal)
     rgb_n = np.reshape(rgb, (-1, 3))
-    return save_point_cloud(pcd, rgb_n)
+    save_point_cloud(pcd, rgb_n, os.path.join(dir, pcd_name + '.ply'))
 
 
 def recover_metric_depth(pred, gt):
