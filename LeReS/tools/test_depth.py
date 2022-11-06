@@ -63,12 +63,12 @@ def predict():
     if (flask.request.method == "OPTIONS"):
         print("got options 1")
         response = flask.Response()
-        response.setHeaders("Access-Control-Allow-Origin", "*")
-        response.setHeaders("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        response.setHeaders("Access-Control-Allow-Headers", "Content-Type")
-        response.setHeaders("Cross-Origin-Opener-Policy", "same-origin")
-        response.setHeaders("Cross-Origin-Resource-Policy", "cross-origin")
-        response.setHeaders("Cross-Origin-Embedder-Policy", "require-corp")
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
         print("got options 2")
         return flask.Response(response="", status=200)
 
@@ -93,12 +93,12 @@ def predict():
     output = cv2.imencode(".png", pred_depth_ori)[1].tobytes()
     response = flask.Response(output, mimetype="image/png")
     # set cors/coop headers
-    response.setHeaders("Access-Control-Allow-Origin", "*")
-    response.setHeaders("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-    response.setHeaders("Access-Control-Allow-Headers", "Content-Type")
-    response.setHeaders("Cross-Origin-Opener-Policy", "same-origin")
-    response.setHeaders("Cross-Origin-Resource-Policy", "cross-origin")
-    response.setHeaders("Cross-Origin-Embedder-Policy", "require-corp")
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
     # return the response
     return response
 
