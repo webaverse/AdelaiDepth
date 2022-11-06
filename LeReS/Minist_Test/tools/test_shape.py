@@ -12,6 +12,8 @@ from lib.net_tools import load_ckpt
 from lib.spvcnn_classsification import SPVCNN_CLASSIFICATION
 from lib.test_utils import reconstruct_depth
 
+import flask
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Configs for LeReS')
