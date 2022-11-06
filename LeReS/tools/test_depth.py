@@ -100,12 +100,14 @@ def predict():
     mode = flask.request.args.get("mode")
 
     # save the image, same as above, with rainbow map, except to a bytesio for the response
-    bs = io.BytesIO()
-    if mode == "rainbow":
-        plt.imsave(bs, pred_depth_ori, cmap='rainbow')
-    else:
+    bs = None
+    if mode != "rainbow": # monochrome
         # encode with cv2 to bytesio
         bs = cv2.imencode(".png", (pred_depth_ori/pred_depth_ori.max() * 60000).astype(np.uint16))[1].tobytes()
+    else:
+        bsio = io.BytesIO()
+        plt.imsave(bsio, pred_depth_ori, cmap='rainbow')
+        bs = bsio.getvalue()
     
     # make a response with the image
     response = flask.Response(bs, mimetype="image/png")
