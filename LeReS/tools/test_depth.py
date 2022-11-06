@@ -70,7 +70,7 @@ def predict():
         response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
         response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
         print("got options 2")
-        return flask.Response(response="", status=200)
+        return response
 
     print(f"got regular request {flask.request.url}")
     # the body as binary bytesio
