@@ -181,6 +181,7 @@ def predict():
     #pred_depth_metric = recover_metric_depth(pred_depth_ori, gt_depth)
 
     # img_name = v.split('/')[-1]
+    img_name = "image.png"
     # cv2.imwrite(os.path.join(image_dir_out, img_name), rgb)
     # # save depth
     # plt.imsave(os.path.join(image_dir_out, img_name[:-4]+'-depth.png'), pred_depth_ori, cmap='rainbow')
