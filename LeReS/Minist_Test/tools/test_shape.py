@@ -190,7 +190,7 @@ def predict():
     # plt.imsave(os.path.join(image_dir_out, img_name[:-4]+'-depth.png'), pred_depth_ori, cmap='rainbow')
     # np.save(os.path.join(image_dir_out, img_name[:-4]+'-depth.npy'), pred_depth_ori)
     # print(focal_length)
-    
+
     # cv2.imwrite(os.path.join(image_dir_out, img_name[:-4]+'-depth_raw.png'), (pred_depth_ori/pred_depth_ori.max() * 60000).astype(np.uint16))
     # # save disp
     # cv2.imwrite(os.path.join(image_dir_out, img_name[:-4]+'.png'), disp)
