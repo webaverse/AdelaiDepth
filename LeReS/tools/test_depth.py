@@ -108,7 +108,7 @@ def predict():
         bs = cv2.imencode(".png", (pred_depth_ori/pred_depth_ori.max() * 60000).astype(np.uint16))[1].tobytes()
     
     # make a response with the image
-    output = bs.tobytes()
+    output = bs
     print(f"got output length: {len(output)}")
     response = flask.Response(output, mimetype="image/png")
     # set cors/coop headers
