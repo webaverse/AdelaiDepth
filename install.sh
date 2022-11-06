@@ -6,3 +6,6 @@ wget -O ./res101.pth https://cloudstor.aarnet.edu.au/plus/s/lTIJF4vrvHCAI31/down
 conda create --name adelai
 conda activate adelai
 pip3 install -r requirements.txt
+
+sudo apt-get install -y libsparsehash-dev
+pip install --upgrade git+https://github.com/mit-han-lab/torchsparse.git@v1.4.0
