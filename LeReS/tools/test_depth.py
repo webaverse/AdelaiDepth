@@ -101,10 +101,10 @@ def predict():
     plt.imsave(bs, pred_depth_ori, cmap='rainbow')
     
     # encode with cv2 to bytesio
-    bs2 = cv2.imencode(".png", (pred_depth_ori/pred_depth_ori.max() * 60000).astype(np.uint16))
+    bs2 = cv2.imencode(".png", (pred_depth_ori/pred_depth_ori.max() * 60000).astype(np.uint16))[1]
     
     # make a response with the image
-    output = bs2.getvalue()
+    output = bs2.tobytes()
     print(f"got output length: {len(output)}")
     response = flask.Response(output, mimetype="image/png")
     # set cors/coop headers
