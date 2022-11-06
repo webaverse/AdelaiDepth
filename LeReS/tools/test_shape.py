@@ -59,7 +59,7 @@ def make_shift_focallength_models():
     focal_model.eval()
     return shift_model, focal_model
 
-def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model):
+def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov):
     cam_u0 = rgb.shape[1] / 2.0
     cam_v0 = rgb.shape[0] / 2.0
     pred_depth_norm = pred_depth - pred_depth.min() + 0.5
@@ -68,7 +68,7 @@ def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model):
     pred_depth_norm = pred_depth_norm / dmax
 
     # proposed focal length, FOV is 60', Note that 60~80' are acceptable.
-    proposed_scaled_focal = (rgb.shape[0] // 2 / np.tan((60/2.0)*np.pi/180))
+    proposed_scaled_focal = (rgb.shape[0] // 2 / np.tan((fov/2.0)*np.pi/180))
 
     # recover focal
     focal_scale_1 = refine_focal(pred_depth_norm, proposed_scaled_focal, focal_model, u0=cam_u0, v0=cam_v0)
@@ -172,8 +172,9 @@ def predict():
     pred_depth_ori = cv2.resize(pred_depth, (rgb.shape[1], rgb.shape[0]))
 
     # recover focal length, shift, and scale-invariant depth
+    fov = 60
     shift, focal_length, depth_scaleinv = reconstruct3D_from_depth(rgb, pred_depth_ori,
-                                                                    shift_model, focal_model)
+                                                                    shift_model, focal_model, fov)
     disp = 1 / depth_scaleinv
     disp = (disp / disp.max() * 60000).astype(np.uint16)
 
