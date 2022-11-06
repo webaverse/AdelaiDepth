@@ -15,7 +15,8 @@ from lib.test_utils import reconstruct_depth
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Configs for LeReS')
-    parser.add_argument('--load_ckpt', default='./res50.pth', help='Checkpoint path to load')
+    # parser.add_argument('--load_ckpt', default='./res50.pth', help='Checkpoint path to load')
+    parser.add_argument('--load_ckpt', default='./res101.pth', help='Checkpoint path to load')
     parser.add_argument('--backbone', default='resnext101', help='Checkpoint path to load')
 
     args = parser.parse_args()
