@@ -82,60 +82,118 @@ def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model):
 
     return shift_1, predicted_focal_2, depth_scale_1
 
-if __name__ == '__main__':
 
-    args = parse_args()
 
-    # create depth model
-    depth_model = RelDepthModel(backbone=args.backbone)
-    depth_model.eval()
 
-    # create shift and focal length model
-    shift_model, focal_model = make_shift_focallength_models()
 
-    # load checkpoint
-    load_ckpt(args, depth_model, shift_model, focal_model)
-    depth_model.cuda()
-    shift_model.cuda()
-    focal_model.cuda()
 
-    image_dir = os.path.dirname(os.path.dirname(__file__)) + '/test_images/'
-    imgs_list = os.listdir(image_dir)
-    imgs_list.sort()
-    imgs_path = [os.path.join(image_dir, i) for i in imgs_list if i != 'outputs']
-    image_dir_out = image_dir + '/outputs'
-    os.makedirs(image_dir_out, exist_ok=True)
 
-    for i, v in enumerate(imgs_path):
-        print('processing (%04d)-th image... %s' % (i, v))
-        rgb = cv2.imread(v)
-        rgb_c = rgb[:, :, ::-1].copy()
-        gt_depth = None
-        A_resize = cv2.resize(rgb_c, (448, 448))
-        rgb_half = cv2.resize(rgb, (rgb.shape[1]//2, rgb.shape[0]//2), interpolation=cv2.INTER_LINEAR)
 
-        img_torch = scale_torch(A_resize)[None, :, :, :]
-        pred_depth = depth_model.inference(img_torch).cpu().numpy().squeeze()
-        pred_depth_ori = cv2.resize(pred_depth, (rgb.shape[1], rgb.shape[0]))
 
-        # recover focal length, shift, and scale-invariant depth
-        shift, focal_length, depth_scaleinv = reconstruct3D_from_depth(rgb, pred_depth_ori,
-                                                                       shift_model, focal_model)
-        disp = 1 / depth_scaleinv
-        disp = (disp / disp.max() * 60000).astype(np.uint16)
 
-        # if GT depth is available, uncomment the following part to recover the metric depth
-        #pred_depth_metric = recover_metric_depth(pred_depth_ori, gt_depth)
 
-        img_name = v.split('/')[-1]
-        cv2.imwrite(os.path.join(image_dir_out, img_name), rgb)
-        # save depth
-        plt.imsave(os.path.join(image_dir_out, img_name[:-4]+'-depth.png'), pred_depth_ori, cmap='rainbow')
-	np.save(os.path.join(image_dir_out, img_name[:-4]+'-depth.npy'), pred_depth_ori)
-	print(focal_length)
-        cv2.imwrite(os.path.join(image_dir_out, img_name[:-4]+'-depth_raw.png'), (pred_depth_ori/pred_depth_ori.max() * 60000).astype(np.uint16))
-        # save disp
-        cv2.imwrite(os.path.join(image_dir_out, img_name[:-4]+'.png'), disp)
 
-        # reconstruct point cloud from the depth
-        reconstruct_depth(depth_scaleinv, rgb[:, :, ::-1], image_dir_out, img_name[:-4]+'-pcd', focal=focal_length)
+
+
+
+
+
+args = parse_args()
+
+# create depth model
+depth_model = RelDepthModel(backbone=args.backbone)
+depth_model.eval()
+
+# create shift and focal length model
+shift_model, focal_model = make_shift_focallength_models()
+
+# load checkpoint
+load_ckpt(args, depth_model, shift_model, focal_model)
+depth_model.cuda()
+shift_model.cuda()
+focal_model.cuda()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# if __name__ == '__main__':
+
+# flask server
+app = flask.Flask(__name__)
+
+# serve api route
+@app.route("/pointcloud", methods=["POST", "OPTIONS"])
+def predict():
+    if (flask.request.method == "OPTIONS"):
+        print("got options 1")
+        response = flask.Response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+        print("got options 2")
+        return response
+
+
+    # image_dir = os.path.dirname(os.path.dirname(__file__)) + '/test_images/'
+    # imgs_list = os.listdir(image_dir)
+    # imgs_list.sort()
+    # imgs_path = [os.path.join(image_dir, i) for i in imgs_list if i != 'outputs']
+    # image_dir_out = image_dir + '/outputs'
+    # os.makedirs(image_dir_out, exist_ok=True)
+
+    # for i, v in enumerate(imgs_path):
+
+    # get body bytes
+    body = flask.request.get_data()
+
+    print('processing (%04d)-th image... %s' % (i, v))
+    # rgb = cv2.imread(v)
+    rgb = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
+    rgb_c = rgb[:, :, ::-1].copy()
+    gt_depth = None
+    A_resize = cv2.resize(rgb_c, (448, 448))
+    rgb_half = cv2.resize(rgb, (rgb.shape[1]//2, rgb.shape[0]//2), interpolation=cv2.INTER_LINEAR)
+
+    img_torch = scale_torch(A_resize)[None, :, :, :]
+    pred_depth = depth_model.inference(img_torch).cpu().numpy().squeeze()
+    pred_depth_ori = cv2.resize(pred_depth, (rgb.shape[1], rgb.shape[0]))
+
+    # recover focal length, shift, and scale-invariant depth
+    shift, focal_length, depth_scaleinv = reconstruct3D_from_depth(rgb, pred_depth_ori,
+                                                                    shift_model, focal_model)
+    disp = 1 / depth_scaleinv
+    disp = (disp / disp.max() * 60000).astype(np.uint16)
+
+    # if GT depth is available, uncomment the following part to recover the metric depth
+    #pred_depth_metric = recover_metric_depth(pred_depth_ori, gt_depth)
+
+    img_name = v.split('/')[-1]
+    # cv2.imwrite(os.path.join(image_dir_out, img_name), rgb)
+    # # save depth
+    # plt.imsave(os.path.join(image_dir_out, img_name[:-4]+'-depth.png'), pred_depth_ori, cmap='rainbow')
+    # np.save(os.path.join(image_dir_out, img_name[:-4]+'-depth.npy'), pred_depth_ori)
+    # print(focal_length)
+    
+    # cv2.imwrite(os.path.join(image_dir_out, img_name[:-4]+'-depth_raw.png'), (pred_depth_ori/pred_depth_ori.max() * 60000).astype(np.uint16))
+    # # save disp
+    # cv2.imwrite(os.path.join(image_dir_out, img_name[:-4]+'.png'), disp)
+
+    # reconstruct point cloud from the depth
+    return reconstruct_depth(depth_scaleinv, rgb[:, :, ::-1], img_name[:-4]+'-pcd', focal=focal_length)
+
+# listen as a threaded server on 0.0.0.0:80
+app.run(host="0.0.0.0", port=80, threaded=True)
