@@ -73,7 +73,6 @@ def predict():
         print("got options 2")
         return response
 
-
     print(f"got regular request {flask.request.url}")
     # the body as binary bytesio
     body = flask.request.get_data()
@@ -99,15 +98,15 @@ def predict():
     
     # get the "mode" uql query parameter
     mode = flask.request.args.get("mode")
-    bs = None
-    if mode == "color":
-        # save the image, same as above, with rainbow map, except to a bytesio for the response
-        bs = io.BytesIO()
-        plt.imsave(bs, pred_depth_ori, cmap='rainbow')
-    else: # monochrome
-        # encode with cv2 to bytesio
-        bs = cv2.imencode(".png", (pred_depth_ori/pred_depth_ori.max() * 60000).astype(np.uint16))[1]
 
+    # save the image, same as above, with rainbow map, except to a bytesio for the response
+    bs = io.BytesIO()
+    if mode == "rainbow":
+        plt.imsave(bs, pred_depth_ori, cmap='rainbow')
+    else:
+        # encode with cv2 to bytesio
+        bs = cv2.imencode(".png", (pred_depth_ori/pred_depth_ori.max() * 60000).astype(np.uint16))[1].tobytes()
+    
     # make a response with the image
     output = bs.tobytes()
     print(f"got output length: {len(output)}")
