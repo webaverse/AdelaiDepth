@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
+import io
 import flask
 
 from lib.multi_depth_model_woauxi import RelDepthModel
@@ -92,7 +93,13 @@ def predict():
     #pred_depth_metric = recover_metric_depth(pred_depth_ori, gt_depth)
 
     # respond with the image
-    output = cv2.imencode(".png", pred_depth_ori)[1].tobytes()
+    # output = cv2.imencode(".png", pred_depth_ori)[1].tobytes()
+    # plt.imsave(os.path.join(image_dir_out, img_name[:-4]+'-depth.png'), pred_depth_ori, cmap='rainbow')
+    # save the image, same as above, with rainbow map, except to a bytesio for the response
+    bs = io.BytesIO()
+    plt.imsave(bs, pred_depth_ori, cmap='rainbow')
+    # make a response with the image
+    output = bs.getvalue()
     print(f"got output length: {len(output)}")
     response = flask.Response(output, mimetype="image/png")
     # set cors/coop headers
