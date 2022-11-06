@@ -77,6 +77,8 @@ def predict():
     body = flask.request.get_data()
     # decode to cv2
     rgb = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
+    # print the width and height
+    print(f"got image {rgb.shape[1]}x{rgb.shape[0]}")
     rgb_c = rgb[:, :, ::-1].copy()
     gt_depth = None
     A_resize = cv2.resize(rgb_c, (448, 448))
@@ -91,6 +93,7 @@ def predict():
 
     # respond with the image
     output = cv2.imencode(".png", pred_depth_ori)[1].tobytes()
+    print(f"got output length: {len(output)}")
     response = flask.Response(output, mimetype="image/png")
     # set cors/coop headers
     response.headers["Access-Control-Allow-Origin"] = "*"
