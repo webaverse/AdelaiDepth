@@ -159,7 +159,7 @@ def predict():
     # get body bytes
     body = flask.request.get_data()
 
-    print('processing (%04d)-th image... %s' % (i, v))
+    # print('processing (%04d)-th image... %s' % (i, v))
     # rgb = cv2.imread(v)
     rgb = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
     rgb_c = rgb[:, :, ::-1].copy()
@@ -192,7 +192,20 @@ def predict():
     # cv2.imwrite(os.path.join(image_dir_out, img_name[:-4]+'.png'), disp)
 
     # reconstruct point cloud from the depth
-    return reconstruct_depth(depth_scaleinv, rgb[:, :, ::-1], img_name[:-4]+'-pcd', focal=focal_length)
+    result_ndarray = reconstruct_depth(depth_scaleinv, rgb[:, :, ::-1], img_name[:-4]+'-pcd', focal=focal_length)
+    # serialize the ndrarray to the result
+    result_bytes = result_ndarray.tobytes()
+    # return the result
+    response = flask.Response(result_bytes)
+    response.headers["Content-Type"] = "application/octet-stream"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+    response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+    return response
+
 
 # listen as a threaded server on 0.0.0.0:80
 app.run(host="0.0.0.0", port=80, threaded=True)
