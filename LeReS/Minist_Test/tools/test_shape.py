@@ -128,10 +128,6 @@ focal_model.cuda()
 
 
 
-
-
-# if __name__ == '__main__':
-
 # flask server
 app = flask.Flask(__name__)
 
