@@ -213,7 +213,7 @@ def predict():
     response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
     response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
     response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
-    response.headers["Fov"] = str(fov2)
+    response.headers["X-Fov"] = str(fov2)
     return response
 
 
