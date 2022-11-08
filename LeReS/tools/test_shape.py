@@ -88,22 +88,6 @@ def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov):
 
     return shift_1, predicted_focal_2, depth_scale_1, fov
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 args = parse_args()
 
 # create depth model
@@ -118,18 +102,6 @@ load_ckpt(args, depth_model, shift_model, focal_model)
 depth_model.cuda()
 shift_model.cuda()
 focal_model.cuda()
-
-
-
-
-
-
-
-
-
-
-
-
 
 # flask server
 app = flask.Flask(__name__)
