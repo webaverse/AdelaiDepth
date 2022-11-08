@@ -110,7 +110,7 @@ app = flask.Flask(__name__)
 @app.route("/pointcloud", methods=["POST", "OPTIONS"])
 def predict():
     if (flask.request.method == "OPTIONS"):
-        print("got options 1")
+        # print("got options 1")
         response = flask.Response()
         response.headers["Access-Control-Allow-Origin"] = "*"
         response.headers["Access-Control-Allow-Headers"] = "*"
@@ -119,9 +119,8 @@ def predict():
         response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
         response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
         response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
-        print("got options 2")
+        # print("got options 2")
         return response
-
 
     # image_dir = os.path.dirname(os.path.dirname(__file__)) + '/test_images/'
     # imgs_list = os.listdir(image_dir)
