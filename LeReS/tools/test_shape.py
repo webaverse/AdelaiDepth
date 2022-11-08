@@ -14,6 +14,10 @@ from lib.test_utils import reconstruct_depth
 
 import flask
 
+import subprocess
+# from pprint import pprint
+import struct
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description='Configs for LeReS')
@@ -185,6 +189,43 @@ def predict():
     response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
     response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
     response.headers["X-Fov"] = str(fov2)
+    return response
+
+ransacBinPath = "./PlaneFitting/src/PlaneFittingSample"
+@app.route("/ransac", methods=["POST", "OPTIONS"])
+def ransac():
+    if (flask.request.method == "OPTIONS"):
+        # print("got options 1")
+        response = flask.Response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Expose-Headers"] = "*"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+        # print("got options 2")
+        return response
+
+    # get body bytes
+    points = flask.request.get_data()
+
+    # points = struct.pack('f'*15, 1,2,3,2,3,4,3,4,5,4,5,6,5,6,7)
+    result = subprocess.run([ransacBinPath], input=points, stdout=subprocess.PIPE)
+    planes = np.frombuffer(result.stdout, dtype=np.float32)
+    # print the plane
+    pprint(planes.reshape(-1, 7))
+    
+    # respond with the data
+    response = flask.Response(result.stdout, mimetype='application/octet-stream')
+    response.headers["Content-Type"] = "application/octet-stream"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Expose-Headers"] = "*"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+    response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
     return response
 
 
