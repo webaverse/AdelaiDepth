@@ -15,7 +15,7 @@ from lib.test_utils import reconstruct_depth
 import flask
 
 import subprocess
-# from pprint import pprint
+from pprint import pprint
 import struct
 
 def parse_args():
