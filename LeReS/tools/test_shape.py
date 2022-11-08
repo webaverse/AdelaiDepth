@@ -17,6 +17,9 @@ import flask
 import subprocess
 from pprint import pprint
 import struct
+from utils import *
+
+import json
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -210,14 +213,23 @@ def ransac():
     # get body bytes
     points = flask.request.get_data()
 
-    # points = struct.pack('f'*15, 1,2,3,2,3,4,3,4,5,4,5,6,5,6,7)
-    result = subprocess.run([ransacBinPath], input=points, stdout=subprocess.PIPE)
-    planes = np.frombuffer(result.stdout, dtype=np.float32)
-    # print the plane
-    pprint(planes.reshape(-1, 7))
-    
+    # convert to ndarray [x3] of points
+    points3 = np.frombuffer(points, dtype=np.float32)
+    points3 = points3.reshape(-1, 3)
+
+    planes = []
+    while len(points3) >= 3:
+        [planeEquation, inlierPointIndices] = PlaneRegression(points3, threshold=0.01, init_n=3, iter=1000)
+        # acc the plane
+        planes.append([planeEquation.tolist(), inlierPointIndices])
+        # remove the points at the given inlierPointIndices from points3
+        points3 = np.delete(points3, inlierPointIndices, axis=0)
+
+    # convert the ndarray into json for the response
+    planes_json = json.dumps(planes)
+
     # respond with the data
-    response = flask.Response(result.stdout, mimetype='application/octet-stream')
+    response = flask.Response(planes_json, mimetype='application/json')
     response.headers["Content-Type"] = "application/octet-stream"
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Headers"] = "*"
