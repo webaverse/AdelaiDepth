@@ -232,7 +232,7 @@ def ransac():
         # acc the plane
         planes.append([planeEquation.tolist(), inlierPointIndices])
         # remove the points at the given inlierPointIndices from points3
-        # points3 = np.delete(points3, inlierPointIndices, axis=0)
+        points3 = np.delete(points3, inlierPointIndices, axis=0)
 
     # convert the ndarray into json for the response
     planes_json = json.dumps(planes)
