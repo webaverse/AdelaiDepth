@@ -213,13 +213,20 @@ def ransac():
     # get body bytes
     points = flask.request.get_data()
 
+    # parse threshold arg (float)
+    threshold = float(flask.request.args.get("threshold", 0.01))
+    # parse init_n arg (int)
+    init_n = int(flask.request.args.get("n", 100))
+    # parse iter arg (int)
+    iter = int(flask.request.args.get("iter", 1000))
+
     # convert to ndarray [x3] of points
     points3 = np.frombuffer(points, dtype=np.float32)
     points3 = points3.reshape(-1, 3)
 
     planes = []
     while len(points3) >= 3 and len(planes) < 16:
-        [planeEquation, inlierPointIndices] = PlaneRegression(points3, threshold=0.01, init_n=3, iter=1000)
+        [planeEquation, inlierPointIndices] = PlaneRegression(points3, threshold=threshold, init_n=init_n, iter=iter)
         # acc the plane
         planes.append([planeEquation.tolist(), inlierPointIndices])
         # remove the points at the given inlierPointIndices from points3
