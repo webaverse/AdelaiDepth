@@ -218,7 +218,7 @@ def ransac():
     points3 = points3.reshape(-1, 3)
 
     planes = []
-    while len(points3) >= 3:
+    while len(points3) >= 3 and len(planes) < 16:
         [planeEquation, inlierPointIndices] = PlaneRegression(points3, threshold=0.01, init_n=3, iter=1000)
         # acc the plane
         planes.append([planeEquation.tolist(), inlierPointIndices])
