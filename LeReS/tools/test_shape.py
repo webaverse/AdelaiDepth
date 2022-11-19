@@ -249,6 +249,42 @@ def ransac():
     response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
     return response
 
+planeDetectionBinPath = "./RGBDPlaneDetection/build/RGBDPlaneDetection"
+@app.route("/planeDetection", methods=["POST", "OPTIONS"])
+def planeDetection():
+    if (flask.request.method == "OPTIONS"):
+        # print("got options 1")
+        response = flask.Response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Expose-Headers"] = "*"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+        # print("got options 2")
+        return response
+
+    # get body bytes
+    bodyBytes = flask.request.get_data()
+
+    # parse minSupport arg (int), default 40000
+    minSupport = int(flask.request.args.get("minSupport", 40000))
+    minSupportString = str(minSupport)
+
+    result = subprocess.run([planeDetectionBinPath, minSupportString], input=bodyBytes, stdout=subprocess.PIPE)
+
+    # respond with the data
+    response = flask.Response(result.stdout, mimetype='application/octet-stream')
+    response.headers["Content-Type"] = "application/octet-stream"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Expose-Headers"] = "*"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+    response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+    return response
 
 # listen as a threaded server on 0.0.0.0:80
 app.run(host="0.0.0.0", port=80, threaded=True)
