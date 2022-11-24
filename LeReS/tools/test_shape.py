@@ -66,7 +66,7 @@ def make_shift_focallength_models():
     focal_model.eval()
     return shift_model, focal_model
 
-def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov):
+def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov, fovForced):
     cam_u0 = rgb.shape[1] / 2.0
     cam_v0 = rgb.shape[0] / 2.0
     pred_depth_norm = pred_depth - pred_depth.min() + 0.5
@@ -78,8 +78,12 @@ def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov):
     proposed_scaled_focal = (rgb.shape[0] // 2 / np.tan((fov/2.0)*np.pi/180))
 
     # recover focal
-    focal_scale_1 = refine_focal(pred_depth_norm, proposed_scaled_focal, focal_model, u0=cam_u0, v0=cam_v0)
-    predicted_focal_1 = proposed_scaled_focal / focal_scale_1.item()
+    predicted_focal_1 = None
+    if not fovForced:
+        focal_scale_1 = refine_focal(pred_depth_norm, proposed_scaled_focal, focal_model, u0=cam_u0, v0=cam_v0)
+        predicted_focal_1 = proposed_scaled_focal / focal_scale_1.item()
+    else:
+        predicted_focal_1 = proposed_scaled_focal
 
     # recover shift
     shift_1 = refine_shift(pred_depth_norm, shift_model, predicted_focal_1, cam_u0, cam_v0)
@@ -153,14 +157,20 @@ def predict():
     pred_depth = depth_model.inference(img_torch).cpu().numpy().squeeze()
     pred_depth_ori = cv2.resize(pred_depth, (rgb.shape[1], rgb.shape[0]))
 
-    # recover focal length, shift, and scale-invariant depth
+    # check if we have the forceFov argument
     fov = 60
-    shift, focal_length, depth_scaleinv, fov2 = reconstruct3D_from_depth(rgb, pred_depth_ori,
-                                                                    shift_model, focal_model, fov)
-    disp = 1 / depth_scaleinv
-    disp = (disp / disp.max() * 60000).astype(np.uint16)
+    fovForced = False
+    if 'forceFov' in flask.request.args:
+        fov = float(flask.request.args['forceFov'])
+        fovForced = True
 
-    print(f"got fov 2 {fov2}")
+    # recover focal length, shift, and scale-invariant depth
+    shift, focal_length, depth_scaleinv, fov2 = reconstruct3D_from_depth(rgb, pred_depth_ori,
+                                                                    shift_model, focal_model, fov, fovForced)
+    # disp = 1 / depth_scaleinv
+    # disp = (disp / disp.max() * 60000).astype(np.uint16)
+
+    # print(f"got fov 2 {fov2}")
 
     # if GT depth is available, uncomment the following part to recover the metric depth
     #pred_depth_metric = recover_metric_depth(pred_depth_ori, gt_depth)
