@@ -111,14 +111,17 @@ def refine_shift_one_step(depth_wshift, model, focal, u0, v0):
     outputs = model(inputs)
     return outputs
 
-def refine_focal(depth, focal, model, u0, v0):
+def refine_focal_steps(depth, focal, model, u0, v0, steps):
     last_scale = 1
     focal_tmp = np.copy(focal)
-    for i in range(1):
+    for i in range(steps):
         scale = refine_focal_one_step(depth, focal_tmp, model, u0, v0)
         focal_tmp = focal_tmp / scale.item()
         last_scale = last_scale * scale
     return torch.tensor([[last_scale]])
+
+def refine_focal(depth, focal, model, u0, v0):
+    return refine_focal_steps(depth, focal, model, u0, v0, 1)
 
 def refine_shift(depth_wshift, model, focal, u0, v0):
     depth_wshift_tmp = np.copy(depth_wshift)
