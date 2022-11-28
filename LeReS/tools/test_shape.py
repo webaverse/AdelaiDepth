@@ -6,7 +6,7 @@ import torch
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 
-from lib.test_utils import refine_focal, refine_shift
+from lib.test_utils import refine_focal, refine_focal_steps, refine_shift
 from lib.multi_depth_model_woauxi import RelDepthModel
 from lib.net_tools import load_ckpt
 from lib.spvcnn_classsification import SPVCNN_CLASSIFICATION
@@ -99,6 +99,25 @@ def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov, fov
 
     return shift_1, predicted_focal_2, depth_scale_1, fov
 
+def getFov(rgb, pred_depth, focal_model, fov, steps):
+    cam_u0 = rgb.shape[1] / 2.0
+    cam_v0 = rgb.shape[0] / 2.0
+    pred_depth_norm = pred_depth - pred_depth.min() + 0.5
+
+    dmax = np.percentile(pred_depth_norm, 98)
+    pred_depth_norm = pred_depth_norm / dmax
+
+    # proposed focal length, FOV is 60', Note that 60~80' are acceptable.
+    proposed_scaled_focal = (rgb.shape[0] // 2 / np.tan((fov/2.0)*np.pi/180))
+
+    # recover focal
+    focal_scale_1 = refine_focal_steps(pred_depth_norm, proposed_scaled_focal, focal_model, u0=cam_u0, v0=cam_v0, steps=steps)
+    predicted_focal_1 = proposed_scaled_focal / focal_scale_1.item()
+    predicted_focal_2 = predicted_focal_1
+    fov = 2 * np.arctan(rgb.shape[0] / (2 * predicted_focal_2)) * 180 / np.pi
+    return fov
+
+
 args = parse_args()
 
 # create depth model
@@ -117,7 +136,7 @@ focal_model.cuda()
 # flask server
 app = flask.Flask(__name__)
 
-# serve api route
+# serve api routes
 @app.route("/pointcloud", methods=["POST", "OPTIONS"])
 def predict():
     if (flask.request.method == "OPTIONS"):
@@ -202,6 +221,57 @@ def predict():
     response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
     response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
     response.headers["X-Fov"] = str(fov2)
+    return response
+
+@app.route("/fov", methods=["POST", "OPTIONS"])
+def predictFov():
+    if (flask.request.method == "OPTIONS"):
+        # print("got options 1")
+        response = flask.Response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Expose-Headers"] = "*"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+        # print("got options 2")
+        return response
+
+    fov = float(flask.request.args.get("fov", 60.0))
+    steps = int(flask.request.args.get("steps", 8))
+
+    # get body bytes
+    body = flask.request.get_data()
+
+    # print('processing (%04d)-th image... %s' % (i, v))
+    # rgb = cv2.imread(v)
+    rgb = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
+    rgb_c = rgb[:, :, ::-1].copy()
+    A_resize = cv2.resize(rgb_c, (448, 448))
+
+    img_torch = scale_torch(A_resize)[None, :, :, :]
+    pred_depth = depth_model.inference(img_torch).cpu().numpy().squeeze()
+    pred_depth_ori = cv2.resize(pred_depth, (rgb.shape[1], rgb.shape[0]))
+
+    # recover focal length, shift, and scale-invariant depth
+    fov2 = getFov(rgb, pred_depth_ori, focal_model, fov, steps)
+
+    # convert the ndarray into json for the response
+    fov_json = json.dumps({
+        "fov": fov2
+    })
+
+    # respond with the data
+    response = flask.Response(fov_json, mimetype='application/json')
+    response.headers["Content-Type"] = "application/octet-stream"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Expose-Headers"] = "*"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+    response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
     return response
 
 ransacBinPath = "./PlaneFitting/src/PlaneFittingSample"
