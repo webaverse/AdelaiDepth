@@ -67,9 +67,9 @@ def make_shift_focallength_models():
     focal_model.eval()
     return shift_model, focal_model
 
-def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov, fovForced):
-    cam_u0 = rgb.shape[1] / 2.0
-    cam_v0 = rgb.shape[0] / 2.0
+def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov):
+    # cam_u0 = rgb.shape[1] / 2.0
+    # cam_v0 = rgb.shape[0] / 2.0
     pred_depth_norm = pred_depth - pred_depth.min() + 0.5
 
     dmax = np.percentile(pred_depth_norm, 98)
@@ -79,24 +79,19 @@ def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov, fov
     proposed_scaled_focal = (rgb.shape[0] // 2 / np.tan((fov/2.0)*np.pi/180))
 
     # recover focal
-    predicted_focal_1 = None
-    if not fovForced:
-        focal_scale_1 = refine_focal(pred_depth_norm, proposed_scaled_focal, focal_model, u0=cam_u0, v0=cam_v0)
-        predicted_focal_1 = proposed_scaled_focal / focal_scale_1.item()
-    else:
-        predicted_focal_1 = proposed_scaled_focal
+    predicted_focal_1 = proposed_scaled_focal
 
     # recover shift
-    shift_1 = refine_shift(pred_depth_norm, shift_model, predicted_focal_1, cam_u0, cam_v0)
-    shift_1 = shift_1 if shift_1.item() < 0.6 else torch.tensor([0.6])
-    depth_scale_1 = pred_depth_norm - shift_1.item()
+    # shift_1 = refine_shift(pred_depth_norm, shift_model, predicted_focal_1, cam_u0, cam_v0)
+    # shift_1 = shift_1 if shift_1.item() < 0.6 else torch.tensor([0.6])
+    # depth_scale_1 = pred_depth_norm - shift_1.item()
+    shift_1 = 0.0
+    depth_scale_1 = pred_depth_norm
 
     # recover focal
-    focal_scale_2 = refine_focal(depth_scale_1, predicted_focal_1, focal_model, u0=cam_u0, v0=cam_v0)
-    predicted_focal_2 = predicted_focal_1 / focal_scale_2.item()
-
-    # recover the true fov
-    fov = 2 * np.arctan(rgb.shape[0] / (2 * predicted_focal_2)) * 180 / np.pi
+    # focal_scale_2 = refine_focal(depth_scale_1, predicted_focal_1, focal_model, u0=cam_u0, v0=cam_v0)
+    # predicted_focal_2 = predicted_focal_1 / focal_scale_2.item()
+    predicted_focal_2 = predicted_focal_1
 
     return shift_1, predicted_focal_2, depth_scale_1, fov
 
@@ -179,14 +174,31 @@ def predict():
 
     # check if we have the forceFov argument
     fov = 60
-    fovForced = False
     if 'forceFov' in flask.request.args:
         fov = float(flask.request.args['forceFov'])
-        fovForced = True
+    else:
+        proxyRequest = requests.post("http://127.0.0.1:5555/predictFov", data=body)
+        if proxyRequest.status_code != 200:
+            # proxt the response content back to the client
+            response = flask.Response(proxyRequest.content)
+            response.headers["Access-Control-Allow-Origin"] = "*"
+            response.headers["Access-Control-Allow-Headers"] = "*"
+            response.headers["Access-Control-Allow-Methods"] = "*"
+            response.headers["Access-Control-Expose-Headers"] = "*"
+            response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+            response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+            response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+            return response
+            
+        json = proxyRequest.json()
+        # get the "focalLength", "fov" and "distortion" floats from the response json
+        fov = float(json['fov'])
+        # focal_length = float(json['focalLength'])
+        # distortion = float(json['distortion'])
 
     # recover focal length, shift, and scale-invariant depth
     shift, focal_length, depth_scaleinv, fov2 = reconstruct3D_from_depth(rgb, pred_depth_ori,
-                                                                    shift_model, focal_model, fov, fovForced)
+                                                                    shift_model, focal_model, fov)
     # disp = 1 / depth_scaleinv
     # disp = (disp / disp.max() * 60000).astype(np.uint16)
 
