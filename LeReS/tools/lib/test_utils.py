@@ -227,7 +227,7 @@ def reconstruct_depth(depth, rgb, pcd_name, focal):
 
     mask = depth < 1e-8
     depth[mask] = 0
-    depth = depth / depth.max() * 100000
+    depth = depth / depth.max() * 10000
 
     pcd = reconstruct_3D(depth, f=focal)
     rgb_n = np.reshape(rgb, (-1, 3))
