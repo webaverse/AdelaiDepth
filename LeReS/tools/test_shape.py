@@ -68,8 +68,8 @@ def make_shift_focallength_models():
     return shift_model, focal_model
 
 def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov):
-    cam_u0 = rgb.shape[1] / 2.0
-    cam_v0 = rgb.shape[0] / 2.0
+    # cam_u0 = rgb.shape[1] / 2.0
+    # cam_v0 = rgb.shape[0] / 2.0
     pred_depth_norm = pred_depth - pred_depth.min() + 0.5
 
     dmax = np.percentile(pred_depth_norm, 98)
@@ -82,9 +82,9 @@ def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov):
     predicted_focal_1 = proposed_scaled_focal
 
     # recover shift
-    shift_1 = refine_shift(pred_depth_norm, shift_model, predicted_focal_1, cam_u0, cam_v0)
-    shift_1 = shift_1 if shift_1.item() < 0.6 else torch.tensor([0.6])
-    depth_scale_1 = pred_depth_norm - shift_1.item()
+    # shift_1 = refine_shift(pred_depth_norm, shift_model, predicted_focal_1, cam_u0, cam_v0)
+    # shift_1 = shift_1 if shift_1.item() < 0.6 else torch.tensor([0.6])
+    # depth_scale_1 = pred_depth_norm - shift_1.item()
     # shift_1 = 0.0
     # depth_scale_1 = pred_depth_norm
 
