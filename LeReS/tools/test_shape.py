@@ -85,8 +85,8 @@ def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov):
     # shift_1 = refine_shift(pred_depth_norm, shift_model, predicted_focal_1, cam_u0, cam_v0)
     # shift_1 = shift_1 if shift_1.item() < 0.6 else torch.tensor([0.6])
     # depth_scale_1 = pred_depth_norm - shift_1.item()
-    # shift_1 = 0.0
-    # depth_scale_1 = pred_depth_norm
+    shift_1 = 0.0
+    depth_scale_1 = pred_depth_norm
 
     # recover focal
     # focal_scale_2 = refine_focal(depth_scale_1, predicted_focal_1, focal_model, u0=cam_u0, v0=cam_v0)
