@@ -13,6 +13,7 @@ from lib.spvcnn_classsification import SPVCNN_CLASSIFICATION
 from lib.test_utils import reconstruct_depth
 
 import flask
+import requests
 
 import subprocess
 from pprint import pprint
@@ -224,7 +225,7 @@ def predict():
     return response
 
 @app.route("/fov", methods=["POST", "OPTIONS"])
-def predictFov():
+def fov1():
     if (flask.request.method == "OPTIONS"):
         # print("got options 1")
         response = flask.Response()
@@ -264,7 +265,38 @@ def predictFov():
 
     # respond with the data
     response = flask.Response(fov_json, mimetype='application/json')
-    response.headers["Content-Type"] = "application/octet-stream"
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "*"
+    response.headers["Access-Control-Expose-Headers"] = "*"
+    response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+    response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+    response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+    return response
+
+@app.route("/predictFov", methods=["POST", "OPTIONS"])
+def predictFov():
+    if (flask.request.method == "OPTIONS"):
+        # print("got options 1")
+        response = flask.Response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Expose-Headers"] = "*"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+        # print("got options 2")
+        return response
+
+    # get body bytes
+    body = flask.request.get_data()
+
+    proxyRequest = requests.post("http://127.0.0.1:5555/predictFov", data=body)
+    proxyResponse = proxyRequest.content
+
+    # respond with the data
+    response = flask.Response(proxyResponse, status=proxyRequest.status_code, mimetype='application/json')
     response.headers["Access-Control-Allow-Origin"] = "*"
     response.headers["Access-Control-Allow-Headers"] = "*"
     response.headers["Access-Control-Allow-Methods"] = "*"
