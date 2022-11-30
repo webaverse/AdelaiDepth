@@ -123,15 +123,18 @@ def refine_focal_steps(depth, focal, model, u0, v0, steps):
 def refine_focal(depth, focal, model, u0, v0):
     return refine_focal_steps(depth, focal, model, u0, v0, 1)
 
-def refine_shift(depth_wshift, model, focal, u0, v0):
+def refine_shift_steps(depth_wshift, model, focal, u0, v0, steps):
     depth_wshift_tmp = np.copy(depth_wshift)
     last_shift = 0
-    for i in range(1):
+    for i in range(steps):
         shift = refine_shift_one_step(depth_wshift_tmp, model, focal, u0, v0)
         shift = shift if shift.item() < 0.7 else torch.tensor([[0.7]])
         depth_wshift_tmp -= shift.item()
         last_shift += shift.item()
     return torch.tensor([[last_shift]])
+
+def refine_shift(depth_wshift, model, focal, u0, v0):
+    return refine_shift_steps(depth_wshift, model, focal, u0, v0, 1)
 
 def reconstruct_3D(depth, f):
     """
