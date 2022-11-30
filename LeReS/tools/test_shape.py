@@ -238,7 +238,7 @@ def predict():
 
 # serve api routes
 @app.route("/depth", methods=["POST", "OPTIONS"])
-def predict():
+def getDepth():
     if (flask.request.method == "OPTIONS"):
         # print("got options 1")
         response = flask.Response()
