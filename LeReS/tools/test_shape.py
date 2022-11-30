@@ -72,7 +72,7 @@ def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov):
     # cam_v0 = rgb.shape[0] / 2.0
     pred_depth_norm = pred_depth - pred_depth.min() + 0.5
 
-    dmax = np.percentile(pred_depth_norm, 98)
+    dmax = np.percentile(pred_depth_norm, 100)
     pred_depth_norm = pred_depth_norm / dmax
 
     # proposed focal length, FOV is 60', Note that 60~80' are acceptable.
