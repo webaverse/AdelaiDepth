@@ -234,9 +234,10 @@ def predict():
         # focal_length = float(json['focalLength'])
         # distortion = float(json['distortion'])
 
+
+
     # recover focal length, shift, and scale-invariant depth
-    shift, focal_length, depth_scaleinv, fov2 = reconstruct3D_from_depth(rgb, pred_depth_ori,
-                                                                    shift_model, focal_model, fov)
+    shift, focal_length, depth_scaleinv, rgb2, fov2 = reconstruct3D_from_depth(rgb, pred_depth_ori, shift_model, focal_model, fov)
     # disp = 1 / depth_scaleinv
     # disp = (disp / disp.max() * 60000).astype(np.uint16)
 
@@ -246,7 +247,7 @@ def predict():
     #pred_depth_metric = recover_metric_depth(pred_depth_ori, gt_depth)
 
     # img_name = v.split('/')[-1]
-    img_name = "image.png"
+    # img_name = "image.png"
     # cv2.imwrite(os.path.join(image_dir_out, img_name), rgb)
     # # save depth
     # plt.imsave(os.path.join(image_dir_out, img_name[:-4]+'-depth.png'), pred_depth_ori, cmap='rainbow')
@@ -257,8 +258,17 @@ def predict():
     # # save disp
     # cv2.imwrite(os.path.join(image_dir_out, img_name[:-4]+'.png'), disp)
 
+
+
+    rgb2 = np.squeeze(rgb2[:, :, ::-1])
+    depth2 = np.squeeze(depth_scaleinv)
+
+    mask = depth2 < 1e-8
+    depth2[mask] = 0
+    depth2 = depth2 / depth2.max() * 10000
+
     # reconstruct point cloud from the depth
-    result_ndarray = reconstruct_depth(depth_scaleinv, rgb[:, :, ::-1], focal=focal_length)
+    result_ndarray = reconstruct_depth(depth2, rgb2, focal=focal_length)
     # serialize the ndrarray to the result
     result_bytes = result_ndarray.tobytes()
     # return the result
