@@ -258,7 +258,7 @@ def predict():
     # cv2.imwrite(os.path.join(image_dir_out, img_name[:-4]+'.png'), disp)
 
     # reconstruct point cloud from the depth
-    result_ndarray = reconstruct_depth(depth_scaleinv, rgb[:, :, ::-1], img_name[:-4]+'-pcd', focal=focal_length)
+    result_ndarray = reconstruct_depth(depth_scaleinv, rgb[:, :, ::-1], focal=focal_length)
     # serialize the ndrarray to the result
     result_bytes = result_ndarray.tobytes()
     # return the result

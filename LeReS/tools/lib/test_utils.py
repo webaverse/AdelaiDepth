@@ -220,7 +220,7 @@ def save_point_cloud(pcd, rgb, binary=True):
         # ---- Save ply data to disk
         np.savetxt(filename, np.column_stack((x, y, z, r, g, b)), fmt="%d %d %d %d %d %d", header=ply_head, comments='')
 
-def reconstruct_depth(depth, rgb, pcd_name, focal):
+def reconstruct_depth(depth, rgb, focal):
     """
     para disp: disparity, [h, w]
     para rgb: rgb image, [h, w, 3], in rgb format
