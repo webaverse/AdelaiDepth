@@ -75,25 +75,63 @@ def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov):
     dmax = np.percentile(pred_depth_norm, 100)
     pred_depth_norm = pred_depth_norm / dmax
 
+    # originalFov = fov
+
+
+
+
+
     # proposed focal length, FOV is 60', Note that 60~80' are acceptable.
-    proposed_scaled_focal = (rgb.shape[0] // 2 / np.tan((fov/2.0)*np.pi/180))
+    # fov2 = 60
+    fov2 = fov
+    proposed_scaled_focal = (rgb.shape[0] // 2 / np.tan((fov2/2.0)*np.pi/180))
 
     # recover focal
-    predicted_focal_1 = proposed_scaled_focal
+    focal_scale_1 = refine_focal(pred_depth_norm, proposed_scaled_focal, focal_model, u0=cam_u0, v0=cam_v0)
+    predicted_focal_1 = proposed_scaled_focal / focal_scale_1.item()
+    # predicted_focal_1 = proposed_scaled_focal
+    predictedFov = 2 * np.arctan(rgb.shape[0] / (2 * predicted_focal_1)) * 180 / np.pi
+
+    # fov = predictedFov
 
     # recover shift
-    shift_1 = refine_shift(pred_depth_norm, shift_model, predicted_focal_1, cam_u0, cam_v0)
+    steps = 1
+    fov3 = fov
+    # fov3 = 60
+    predicted_focal_3 = (rgb.shape[0] // 2 / np.tan((fov3/2.0)*np.pi/180))
+    shift_1 = refine_shift_steps(pred_depth_norm, shift_model, predicted_focal_3, cam_u0, cam_v0, steps)
     # shift_1 = shift_1 if shift_1.item() < 0.6 else torch.tensor([0.6])
-    depth_scale_1 = pred_depth_norm - shift_1.item()
-    # shift_1 = 0.0
-    # depth_scale_1 = pred_depth_norm
+    # factor = fov2 / predicted_fov_x
+    # pred_depth_norm = pred_depth_norm * factor
+    depth_scale_1 = pred_depth_norm
+    # depth_scale_1 = pred_depth_norm - shift_1.item() * 0.5
+    # if shift_1.item() > 0:
+      # depth_scale_1 = pred_depth_norm - shift_1.item() * 0.25
+    # else:
+      # depth_scale_1 = pred_depth_norm
 
-    # recover focal
-    # focal_scale_2 = refine_focal(depth_scale_1, predicted_focal_1, focal_model, u0=cam_u0, v0=cam_v0)
-    # predicted_focal_2 = predicted_focal_1 / focal_scale_2.item()
-    predicted_focal_2 = predicted_focal_1
+    multiplier = 1
+    if shift_1.item() >= 0:
+      multiplier = 2.25
+    else:
+      multiplier = 0
+    focalLengthFactor = 1 - shift_1.item() * multiplier
 
-    return shift_1, predicted_focal_2, depth_scale_1, fov
+    depth_scale_1 = depth_scale_1 * focalLengthFactor
+
+
+
+
+
+    # print('fov: ', fov)
+    # print('original fov: ', originalFov)
+    # print('predicted fov: ', predictedFov)
+    # print('focal: ', predicted_focal_1)
+    # print('shift: ', shift_1.item())
+    # print('focalLengthFactor:', focalLengthFactor)
+
+    fl = (rgb.shape[0] // 2 / np.tan((fov/2.0)*np.pi/180))
+    return shift_1, fl, depth_scale_1, fov
 
 def getFov(rgb, pred_depth, focal_model, fov, steps):
     cam_u0 = rgb.shape[1] / 2.0
