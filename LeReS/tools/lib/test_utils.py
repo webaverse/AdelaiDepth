@@ -128,7 +128,7 @@ def refine_shift_steps(depth_wshift, model, focal, u0, v0, steps):
     last_shift = 0
     for i in range(steps):
         shift = refine_shift_one_step(depth_wshift_tmp, model, focal, u0, v0)
-        shift = shift if shift.item() < 0.7 else torch.tensor([[0.7]])
+        # shift = shift if shift.item() < 0.7 else torch.tensor([[0.7]])
         depth_wshift_tmp -= shift.item()
         last_shift += shift.item()
     return torch.tensor([[last_shift]])
