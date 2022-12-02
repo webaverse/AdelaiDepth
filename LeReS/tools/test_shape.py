@@ -237,7 +237,7 @@ def predict():
 
 
     # recover focal length, shift, and scale-invariant depth
-    shift, focal_length, depth_scaleinv, rgb2, fov2 = reconstruct3D_from_depth(rgb, pred_depth_ori, shift_model, focal_model, fov)
+    shift, focal_length, depth_scaleinv, fov2 = reconstruct3D_from_depth(rgb, pred_depth_ori, shift_model, focal_model, fov)
     # disp = 1 / depth_scaleinv
     # disp = (disp / disp.max() * 60000).astype(np.uint16)
 
@@ -260,7 +260,7 @@ def predict():
 
 
 
-    rgb2 = np.squeeze(rgb2[:, :, ::-1])
+    rgb2 = np.squeeze(rgb[:, :, ::-1])
     depth2 = np.squeeze(depth_scaleinv)
 
     mask = depth2 < 1e-8
