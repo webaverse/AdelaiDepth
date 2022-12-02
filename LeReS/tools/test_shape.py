@@ -75,7 +75,7 @@ def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov):
     dmax = np.percentile(pred_depth_norm, 100)
     pred_depth_norm = pred_depth_norm / dmax
 
-    # originalFov = fov
+    originalFov = fov
 
 
 
@@ -123,12 +123,12 @@ def reconstruct3D_from_depth(rgb, pred_depth, shift_model, focal_model, fov):
 
 
 
-    # print('fov: ', fov)
-    # print('original fov: ', originalFov)
-    # print('predicted fov: ', predictedFov)
-    # print('focal: ', predicted_focal_1)
-    # print('shift: ', shift_1.item())
-    # print('focalLengthFactor:', focalLengthFactor)
+    print('fov: ', fov)
+    print('original fov: ', originalFov)
+    print('predicted fov: ', predictedFov)
+    print('focal: ', predicted_focal_1)
+    print('shift: ', shift_1.item())
+    print('focalLengthFactor:', focalLengthFactor)
 
     fl = (rgb.shape[0] // 2 / np.tan((fov/2.0)*np.pi/180))
     return shift_1, fl, depth_scale_1, fov
@@ -233,8 +233,6 @@ def predict():
         fov = float(json['fov'])
         # focal_length = float(json['focalLength'])
         # distortion = float(json['distortion'])
-
-
 
     # recover focal length, shift, and scale-invariant depth
     shift, focal_length, depth_scaleinv, fov2 = reconstruct3D_from_depth(rgb, pred_depth_ori, shift_model, focal_model, fov)
