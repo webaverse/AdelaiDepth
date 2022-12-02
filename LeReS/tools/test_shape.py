@@ -6,7 +6,7 @@ import torch
 import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 
-from lib.test_utils import refine_focal, refine_focal_steps, refine_shift
+from lib.test_utils import refine_focal, refine_focal_steps, refine_shift, refine_shift_steps
 from lib.multi_depth_model_woauxi import RelDepthModel
 from lib.net_tools import load_ckpt
 from lib.spvcnn_classsification import SPVCNN_CLASSIFICATION
