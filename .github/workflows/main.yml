@@ -1,0 +1,19 @@
+name: gpu-test
+'on':
+  push:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+
+jobs:
+  deployment:
+    name: 'self-hosted'
+    runs-on: self-hosted
+    steps:
+      - name: Pull
+        working-directory: /home/ubuntu/AdelaiDepth
+        run: git pull
+      - name: Start server
+        run: source run.sh
