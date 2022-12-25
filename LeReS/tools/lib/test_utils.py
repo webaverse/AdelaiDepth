@@ -193,7 +193,12 @@ def save_point_cloud(pcd, rgb, binary=True):
             cur_point = points_3d[row_idx]
             vertices.append(tuple(dtype(point) for dtype, point in zip(python_types, cur_point)))
         vertices_array = np.array(vertices, dtype=npy_types)
-        return vertices_array
+        # get the packed x y z:
+        vertices_array2 = np.zeros(len(vertices_array), dtype=[('x', 'f4'), ('y', 'f4'), ('z', 'f4')])
+        vertices_array2['x'] = vertices_array['x']
+        vertices_array2['y'] = vertices_array['y']
+        vertices_array2['z'] = vertices_array['z']
+        return vertices_array2
         
         el = PlyElement.describe(vertices_array, 'vertex')
          # Write
