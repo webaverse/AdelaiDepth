@@ -357,7 +357,7 @@ def predict():
     response.headers["X-Fov"] = str(fov2)
     # compute focal length from fov:
     # fl = (rgb.shape[0] // 2 / np.tan((fov/2.0)*np.pi/180))
-    response.headers["X-Focal-Length"] = str(focal_length)
+    # response.headers["X-Focal-Length"] = str(focal_length)
     return response
 
 # serve api routes
