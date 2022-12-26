@@ -284,7 +284,7 @@ def predict():
 
 # serve api routes
 @app.route("/depthfield", methods=["POST", "OPTIONS"])
-def predict():
+def depthfield():
     if (flask.request.method == "OPTIONS"):
         response = flask.Response()
         response.headers["Access-Control-Allow-Origin"] = "*"
