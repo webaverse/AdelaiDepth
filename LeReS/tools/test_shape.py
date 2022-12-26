@@ -10,7 +10,7 @@ from lib.test_utils import refine_focal, refine_focal_steps, refine_shift, refin
 from lib.multi_depth_model_woauxi import RelDepthModel
 from lib.net_tools import load_ckpt
 from lib.spvcnn_classsification import SPVCNN_CLASSIFICATION
-from lib.test_utils import reconstruct_depth
+from lib.test_utils import reconstruct_depth, reconstruct_depthfield
 
 import flask
 import requests
