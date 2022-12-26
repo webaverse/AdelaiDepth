@@ -170,12 +170,14 @@ def reconstruct_3D(depth, f):
     return pcd
 
 def reconstruct_depthfield(depth):
+    # return raw float32 bytes of depth field numpy array
+    # depth: H x W numpy array
+    # return: bytes
     width = depth.shape[1]
     height = depth.shape[0]
     z = depth
-    z = np.reshape(z, (width * height, 1)).astype(np.float)
-    result_bytes = z.tobytes()
-    return result_bytes
+    z = np.reshape(z, (width * height, 1)).astype(np.float32)
+    return z.tobytes()
 
 def save_point_cloud(pcd, rgb, binary=True):
     """Save an RGB point cloud as a PLY file.
@@ -234,10 +236,6 @@ def save_point_cloud(pcd, rgb, binary=True):
         np.savetxt(filename, np.column_stack((x, y, z, r, g, b)), fmt="%d %d %d %d %d %d", header=ply_head, comments='')
 
 def reconstruct_depth(depth, rgb, focal):
-    """
-    para disp: disparity, [h, w]
-    para rgb: rgb image, [h, w, 3], in rgb format
-    """
     pcd = reconstruct_3D(depth, f=focal)
     rgb_n = np.reshape(rgb, (-1, 3))
     return save_point_cloud(pcd, rgb_n)
