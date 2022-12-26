@@ -391,6 +391,63 @@ def getDepth():
     response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
     response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
     return response
+
+# API call that returns depth map given post request with image
+@app.route("/predictDepth", methods=["POST", "OPTIONS"])
+def predictDepth():
+    print("HELLLOOOOO", file=sys.stdout, flush=True)
+    print("got request", flask.request.method, file=sys.stdout, flush=True)
+    if (flask.request.method == "OPTIONS"):
+        # print("got options 1")
+        response = flask.Response()
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Expose-Headers"] = "*"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+        # print("got options 2")
+        return response
+
+    # get body bytes
+    try:
+        body = flask.request.get_data()
+
+        # print('processing (%04d)-th image... %s' % (i, v))
+        # rgb = cv2.imread(v)
+        rgb = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
+        rgb_c = rgb[:, :, ::-1].copy()
+        A_resize = cv2.resize(rgb_c, (448, 448))
+
+        img_torch = scale_torch(A_resize)[None, :, :, :]
+        pred_depth = depth_model.inference(img_torch).cpu().numpy().squeeze()
+        pred_depth_ori = cv2.resize(pred_depth, (rgb.shape[1], rgb.shape[0]))
+
+        result_bytes = pred_depth_ori.tobytes()
+        # return the result
+        response = flask.Response(result_bytes)
+        response.headers["Content-Type"] = "application/octet-stream"
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Expose-Headers"] = "*"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+        return response
+    except Exception as e:
+        # respond with error message e with 500 response code
+        response =  flask.Response(str(e), status=500)
+        response.headers["Access-Control-Allow-Origin"] = "*"
+        response.headers["Access-Control-Allow-Headers"] = "*"
+        response.headers["Access-Control-Allow-Methods"] = "*"
+        response.headers["Access-Control-Expose-Headers"] = "*"
+        response.headers["Cross-Origin-Opener-Policy"] = "same-origin"
+        response.headers["Cross-Origin-Embedder-Policy"] = "require-corp"
+        response.headers["Cross-Origin-Resource-Policy"] = "cross-origin"
+        return response
+
         
 
 @app.route("/fov", methods=["POST", "OPTIONS"])
