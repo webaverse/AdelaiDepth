@@ -169,6 +169,14 @@ def reconstruct_3D(depth, f):
     pcd = pcd.astype(np.int)
     return pcd
 
+def reconstruct_depthfield(depth):
+    width = depth.shape[1]
+    height = depth.shape[0]
+    z = depth
+    z = np.reshape(z, (width * height, 1)).astype(np.float)
+    result_bytes = z.tobytes()
+    return result_bytes
+
 def save_point_cloud(pcd, rgb, binary=True):
     """Save an RGB point cloud as a PLY file.
 
