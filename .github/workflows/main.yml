@@ -1,4 +1,4 @@
-name: gpu-test
+name: cw-depth-server
 'on':
   push:
     # - branch: release
