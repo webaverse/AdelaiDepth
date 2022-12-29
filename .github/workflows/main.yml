@@ -1,6 +1,7 @@
 name: gpu-test
 'on':
   push:
+    # - branch: release
   pull_request:
     types:
       - opened
@@ -15,5 +16,12 @@ jobs:
       - name: Pull
         working-directory: /home/ubuntu/AdelaiDepth
         run: git pull
-      - name: Start server
+      # - name: Activate venv
+      #   run: conda activate adelai
+      - name: Install dependencies
+        run: |
+          python -m pip install -r requirements.txt
+      # - name: Lint
+      #   run: TODO | required ??
+      - name: Activate venv and start server
         run: source run.sh
