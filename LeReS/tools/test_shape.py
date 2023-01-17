@@ -395,8 +395,6 @@ def getDepth():
 # API call that returns depth map given post request with image
 @app.route("/predictDepth", methods=["POST", "OPTIONS"])
 def predictDepth():
-    print("HELLLOOOOO", file=sys.stdout, flush=True)
-    print("got request", flask.request.method, file=sys.stdout, flush=True)
     if (flask.request.method == "OPTIONS"):
         # print("got options 1")
         response = flask.Response()
